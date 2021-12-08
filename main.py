@@ -28,7 +28,7 @@ def _parse_nethr_article(page: BeautifulSoup) -> str:
 
 
 @with_prefix_and_suffix(":rocket: ", "\n:joy:")
-def _boomer_joke():
+def _boomer_joke() -> str:
     with requests.Session() as s:
         source = "https://net.hr"
         request_ = s.get(f"{source}/webcafe/vic-dana")
@@ -49,7 +49,7 @@ def _boomer_joke():
            "> _Ovo je horoskop bas za vas, nema diskriminacije po datumu rodenja._\n",
     suffix=""
 )
-def _horoscope():
+def _horoscope() -> str:
     with requests.Session() as s:
         source = "https://net.hr"
         sign = random.choice(
@@ -76,7 +76,7 @@ def _horoscope():
 
 
 @with_prefix_and_suffix(":football: ", "\n:joy:")
-def _amer_joke():
+def _amer_joke() -> str:
     r = praw.Reddit(
         client_id='zq5AGccUdiIiQWe2-PfNUA',
         client_secret='ns0ySf60Hhvj5SfiLM-e1fo_IBwzcQ',
@@ -91,23 +91,23 @@ def _amer_joke():
     return f"{top_post.title}\n{top_post.selftext}"
 
 
-def _send_to_slack(client, joke):
-    response = client.chat_postMessage(
+def send(
+        message: str,
+        bot: str,
+):
+    slack_client = WebClient(token=os.environ[f'SLACK_{bot.upper()}_TOKEN'])
+    response = slack_client.chat_postMessage(
         channel=f"#{os.environ['CHANNEL']}",
-        text=joke)
+        text=message)
     assert response["ok"]
 
 
-def send(
-        message,
-        bot,
-):
-    slack_client = WebClient(token=os.environ[f'SLACK_{bot.upper()}_TOKEN'])
-    joke = globals()[f"_{message}"]()
-    _send_to_slack(slack_client, joke)
+def main():
+    # send(_boomer_joke(), 'boomer')
+    send(_horoscope(), 'boomer')
+    send(_amer_joke(), 'amer')
 
 
 if __name__ == '__main__':
-    # send('boomer_joke', 'boomer')
-    send('horoscope', 'boomer')
-    send('amer_joke', 'amer')
+    main()
+
