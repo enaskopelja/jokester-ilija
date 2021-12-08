@@ -1,4 +1,4 @@
 slackclient~=2.9.3
-praw~=7.4.0
+praw~=7.5.0
 requests~=2.26.0
 beautifulsoup4~=4.10.0
