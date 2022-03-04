@@ -1,0 +1,56 @@
+[tool.pylint.master]
+bad-names = [] 
+disable = [
+    "missing-module-docstring",
+    "missing-function-docstring",
+]
+extension-pkg-whitelist = [
+  "cv2",
+] 
+generated-members = [] 
+good-names = [
+  "i",
+  "x",
+  "y",
+]
+ignore = [
+  "venv",
+] 
+ignore-patterns = [] 
+ignored-modules = []
+jobs = 1 
+load-plugins = [
+  "pylint.extensions.broad_try_clause",
+  "pylint.extensions.code_style",
+  "pylint.extensions.emptystring",
+  "pylint.extensions.comparetozero",
+  "pylint.extensions.comparison_placement",
+  "pylint.extensions.confusing_elif",
+  "pylint.extensions.for_any_all",
+  "pylint.extensions.consider_ternary_expression",
+  "pylint.extensions.bad_builtin",
+  "pylint.extensions.mccabe",
+  "pylint.extensions.check_elif",
+  "pylint.extensions.redefined_variable_type",
+  "pylint.extensions.overlapping_exceptions",
+  "pylint.extensions.docparams",
+  "pylint.extensions.empty_comment",
+  "pylint.extensions.set_membership",
+  "pylint.extensions.typing",
+  "pylint.extensions.while_used",
+] 
+max-args = 10 # default = 5
+max-line-length = 88 # default = 100
+
+[tool.mypy]
+exclude = "venv"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+ignore_missing_imports = true
+module = [
+  "numpy",
+]
+
+[tool.isort]
+profile = "black"
