@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  api:
+    platform: linux/amd64
+    build: .
+    image: jokester-linux
+    ports:
+      - "1950:80"
+    env_file:
+      - .env
