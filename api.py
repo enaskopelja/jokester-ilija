@@ -1,10 +1,8 @@
 import requests
-from flask import Flask, jsonify
+from flask import Flask, Response, jsonify
 
-from amer import fetch_joke as amer_joke
-from boomer import fetch_joke as boomer_joke
-from commons import send
-from inspirobot import inspirobot_image_uri
+from bots import amer, boomer, inspirobot
+from utils.slack import image_response, send, text_response
 
 app = Flask(__name__)
 
@@ -14,105 +12,66 @@ def _get_image_bytes(uri: str) -> bytes:
         return session.get(uri).content
 
 
+def _response_type_from_target(target: str) -> str:
+    if target not in {"us", "me"}:
+        raise ValueError(f"Unsupported target: {target}")
+
+    return "in_channel" if target == "us" else "ephemeral"
+
+
 @app.errorhandler(400)
 def client_error(error):
     return jsonify(error=str(error)), 400
 
 
-def image_response(
-    response_type: str,
-    pretext: str,
-    fallback: str,
-    image_url: str,
-):
-    return jsonify(
-        {
-            "response_type": response_type,
-            "attachments": [
-                {
-                    "fallback": fallback,
-                    "pretext": pretext,
-                    "image_url": image_url,
-                }
-            ],
-        }
-    )
-
-
-def text_response(
-    response_type: str,
-    text: str,
-):
-    return jsonify(
-        {
-            "response_type": response_type,
-            "text": text,
-        }
-    )
-
-
-@app.route("/boomer-me", methods=["POST", "GET"])
-def boomer_me():
-    return text_response(response_type="ephemeral", text=boomer_joke()), "200"
-
-
-@app.route("/boomer-us", methods=["POST", "GET"])
-def boomer_us():
-    return text_response(response_type="in_channel", text=boomer_joke()), "200"
-
-
-@app.route("/amer-me", methods=["POST", "GET"])
-def amer_me():
-    return text_response(response_type="ephemeral", text=amer_joke(censor=False)), "200"
-
-
-@app.route("/amer-us", methods=["POST", "GET"])
-def amer_us():
+@app.route("/boomer-<string:target>", methods=["POST", "GET"])
+def boomer_(target: str) -> tuple[Response, str]:
     return (
-        text_response(response_type="in_channel", text=amer_joke(censor=False)),
-        "200",
-    )
-
-
-@app.route("/inspire-me", methods=["POST", "GET"])
-def inspire_me():
-    return (
-        image_response(
-            response_type="ephemeral",
-            pretext="Inspiration incoming :train:...",
-            fallback="Pure inspiration.",
-            image_url=inspirobot_image_uri(),
+        text_response(
+            response_type=_response_type_from_target(target),
+            text=boomer.fetch_joke(),
         ),
         "200",
     )
 
 
-@app.route("/inspire-us", methods=["POST", "GET"])
-def inspire_us():
+@app.route("/amer-<string:target>", methods=["POST", "GET"])
+def amer_(target: str) -> tuple[Response, str]:
     return (
-        image_response(
-            response_type="in_channel",
-            pretext="Inspiration incoming :train:...",
-            fallback="Pure inspiration.",
-            image_url=inspirobot_image_uri(),
+        text_response(
+            response_type=_response_type_from_target(target),
+            text=amer.fetch_joke(censor=False),
         ),
         "200",
     )
 
 
-@app.route("/", methods=["POST"])
-def daily():
+@app.route("/inspire-<string:target>", methods=["POST", "GET"])
+def inspire(target: str) -> tuple[Response, str]:
+    return (
+        image_response(
+            response_type=_response_type_from_target(target),
+            pretext="Inspiration incoming :train:...",
+            fallback="Pure inspiration.",
+            image_url=inspirobot.image_uri(),
+        ),
+        "200",
+    )
+
+
+@app.route("/daily", methods=["GET"])
+def daily() -> str:
     send(
         bot="amer",
-        message=amer_joke(),
+        message=amer.fetch_joke(),
     )
 
     send(
         bot="boomer",
-        message=boomer_joke(),
+        message=boomer.fetch_joke(),
     )
 
-    image_uri = inspirobot_image_uri()
+    image_uri = inspirobot.image_uri()
     send(
         bot="inspirobot",
         message={

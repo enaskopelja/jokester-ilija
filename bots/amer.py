@@ -1,6 +1,6 @@
 import praw
 
-from commons import with_prefix_and_suffix
+from .commons import with_prefix_and_suffix
 
 
 def _fetch_censored_joke(top):

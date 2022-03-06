@@ -1,10 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
 
-from commons import with_prefix_and_suffix
+from .commons import with_prefix_and_suffix
 
 
-def _parse_boomer_redirect(content: requests.Response.content) -> str:
+def _parse_boomer_redirect(content: bytes) -> str:
     main_page = BeautifulSoup(content, "html.parser")
     for a_tag in main_page.findAll("a", href=True):
         if a_tag.get("title", "").startswith("[VIC DANA]"):
