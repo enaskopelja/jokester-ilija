@@ -1,0 +1,51 @@
+---
+name: Deploy Cloud Function
+on:
+  push:
+    branches: [main, dev, ci-cd]
+    tags:
+      - 'v?[0-2](.[0-9])+(.[0-9])+'
+
+env:
+  GC_PROJECT_ID: ml-image-processing-315114
+  APP_NAME: jokester
+  SLACK-CHANNEL: vic-dana
+
+jobs:
+  deploy-to-cloud-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+
+      - name: 'Use gcloud CLI'
+        run: 'gcloud info'
+
+      - id: "configure-docker"
+        run: gcloud auth configure-docker
+
+      - name: "Build"
+        run: docker build -f docker/Dockerfile -t ${{ env.APP_NAME }} .
+
+      # yamllint disable rule:line-length
+      # TODO(ena) learn YAML sytax ffs
+      - name: "Push to GCR"
+        run: |
+          docker tag ${{ env.APP_NAME }} gcr.io/${{ env.GC_PROJECT_ID }}/${{ env.APP_NAME }} &
+          docker push gcr.io/${{ env.GC_PROJECT_ID }}/${{ env.APP_NAME }}
+
+      - name: 'Deploy to cloud run'
+        run: >-
+          gcloud run deploy ${{ env.APP_NAME }}
+          --image gcr.io/${{ env.GC_PROJECT_ID }}/${{ env.APP_NAME }}
+          --region europe-west6
+          --set-secrets="SLACK_INSPIROBOT_TOKEN=inspirobot-slack-token:latest,SLACK_AMER_TOKEN=amer-slack-token:latest,SLACK_BOOMER_TOKEN=boomer-slack-token:latest"
+          --update-env-vars="CHANNEL=${{ env.SLACK_CHANNEL }}"
