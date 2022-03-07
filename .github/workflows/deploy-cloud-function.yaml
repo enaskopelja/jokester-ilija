@@ -48,4 +48,4 @@ jobs:
           --image gcr.io/${{ env.GC_PROJECT_ID }}/${{ env.APP_NAME }}
           --region europe-west6
           --set-secrets="SLACK_INSPIROBOT_TOKEN=inspirobot-slack-token:latest,SLACK_AMER_TOKEN=amer-slack-token:latest,SLACK_BOOMER_TOKEN=boomer-slack-token:latest"
-          --update-env-vars="CHANNEL=${{ env.SLACK_CHANNEL }}"
+          --update-env-vars="CHANNEL=${{ env.SLACK-CHANNEL }}"
