@@ -62,11 +62,6 @@ def inspire(target: str) -> tuple[Response, str]:
 @app.route("/daily", methods=["GET"])
 def daily() -> str:
     send(
-        bot="amer",
-        message=amer.fetch_joke(),
-    )
-
-    send(
         bot="boomer",
         message=boomer.fetch_joke(),
     )
